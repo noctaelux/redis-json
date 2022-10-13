@@ -1,6 +1,10 @@
 package net.providence.redisjson.boot;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.HashSet;
+import java.util.Random;
+import java.util.Set;
+import java.util.stream.IntStream;
+
 import net.providence.redisjson.models.Book;
 import net.providence.redisjson.models.Cart;
 import net.providence.redisjson.models.CartItem;
@@ -15,10 +19,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
-import java.util.stream.IntStream;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Order(5)
@@ -26,7 +27,7 @@ import java.util.stream.IntStream;
 public class CreateCarts implements CommandLineRunner {
 
     @Autowired
-    private RedisTemplate<String,String> redisTemplate;
+    private RedisTemplate<String, String> redisTemplate;
 
     @Autowired
     CartRepository cartRepository;
@@ -42,18 +43,18 @@ public class CreateCarts implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        if(cartRepository.count() == 0){
+        if (cartRepository.count() == 0) {
             Random random = new Random();
 
             // loops for the number of carts to create
-            IntStream.range(0,numberOfCarts).forEach(n -> {
+            IntStream.range(0, numberOfCarts).forEach(n -> {
                 // get a random user
                 String userId = redisTemplate.opsForSet()//
                         .randomMember(User.class.getName());
 
                 // make a cart for the user
                 Cart cart = Cart.builder()//
-                        .userId(userId)
+                        .userId(userId) //
                         .build();
 
                 // get between 1 and 7 books
@@ -66,7 +67,7 @@ public class CreateCarts implements CommandLineRunner {
                 cartRepository.save(cart);
 
                 // randomly checkout carts
-                if(random.nextBoolean()){
+                if (random.nextBoolean()) {
                     cartService.checkout(cart.getId());
                 }
             });
@@ -75,11 +76,11 @@ public class CreateCarts implements CommandLineRunner {
         }
     }
 
-    private Set<Book> getRandomBooks(BookRepository bookRepository, int max){
+    private Set<Book> getRandomBooks(BookRepository bookRepository, int max) {
         Random random = new Random();
         int howMany = random.nextInt(max) + 1;
         Set<Book> books = new HashSet<Book>();
-        IntStream.range(1,howMany).forEach(n -> {
+        IntStream.range(1, howMany).forEach(n -> {
             String randomBookId = redisTemplate.opsForSet().randomMember(Book.class.getName());
             books.add(bookRepository.findById(randomBookId).get());
         });
@@ -87,7 +88,7 @@ public class CreateCarts implements CommandLineRunner {
         return books;
     }
 
-    private Set<CartItem> getCartItemsForBooks(Set<Book> books){
+    private Set<CartItem> getCartItemsForBooks(Set<Book> books) {
         Set<CartItem> items = new HashSet<CartItem>();
         books.forEach(book -> {
             CartItem item = CartItem.builder()//
@@ -96,9 +97,9 @@ public class CreateCarts implements CommandLineRunner {
                     .quantity(1L) //
                     .build();
             items.add(item);
-
         });
 
         return items;
     }
+
 }

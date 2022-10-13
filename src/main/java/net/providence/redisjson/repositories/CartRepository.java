@@ -1,6 +1,13 @@
 package net.providence.redisjson.repositories;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
 import com.redislabs.modules.rejson.JReJSON;
+
 import net.providence.redisjson.models.Cart;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.HashOperations;
@@ -8,13 +15,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SetOperations;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
-
-import javax.naming.OperationNotSupportedException;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 @Repository
 public class CartRepository implements CrudRepository<Cart, String> {
@@ -29,7 +29,7 @@ public class CartRepository implements CrudRepository<Cart, String> {
         return template.opsForSet();
     }
 
-    private HashOperations<String,String,String> redisHash(){
+    private HashOperations<String, String, String> redisHash() {
         return template.opsForHash();
     }
 
