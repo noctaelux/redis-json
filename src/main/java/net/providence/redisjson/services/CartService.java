@@ -34,33 +34,36 @@ public class CartService {
 
     Path cartItemsPath = Path.of(".cartItems");
 
-    public Cart get(String id){
+    public Cart get(String id) {
         return cartRepository.findById(id).get();
     }
 
-    public void addToCart(String id, CartItem item){
-        Optional<Book> book = bookRepository.findById(item.getIsbn());
-        if(book.isPresent()){
-            String cartKey = CartRepository.getKey(id);
-            item.setPrice(book.get().getPrice());
-            redisJson.arrAppend(cartKey,cartItemsPath,item);
+    public void addToCart(String id, CartItem item) {
+        Optional<Cart> cartFinder = cartRepository.findById(id);
+        if (cartFinder.isPresent()) {
+            Optional<Book> book = bookRepository.findById(item.getIsbn());
+            if (book.isPresent()) {
+                String cartKey = CartRepository.getKey(id);
+                item.setPrice(book.get().getPrice());
+                redisJson.arrAppend(cartKey, cartItemsPath, item);
+            }
         }
     }
 
-    public void removeFromCart(String id, String isbn){
+    public void removeFromCart(String id, String isbn) {
         Optional<Cart> cartFinder = cartRepository.findById(id);
-        if(cartFinder.isPresent()){
+        if (cartFinder.isPresent()) {
             Cart cart = cartFinder.get();
             String cartKey = CartRepository.getKey(cart.getId());
             List<CartItem> cartItems = new ArrayList<CartItem>(cart.getCartItems());
-            OptionalLong cartItemIndex = LongStream.range(0,cartItems.size()).filter(i -> cartItems.get((int) i).getIsbn().equals(isbn)).findFirst();
-            if(cartItemIndex.isPresent()){
+            OptionalLong cartItemIndex =  LongStream.range(0, cartItems.size()).filter(i -> cartItems.get((int) i).getIsbn().equals(isbn)).findFirst();
+            if (cartItemIndex.isPresent()) {
                 redisJson.arrPop(cartKey, CartItem.class, cartItemsPath, cartItemIndex.getAsLong());
             }
         }
     }
 
-    public void checkout(String id){
+    public void checkout(String id) {
         Cart cart = cartRepository.findById(id).get();
         User user = userRepository.findById(cart.getUserId()).get();
         cart.getCartItems().forEach(cartItem -> {
@@ -70,5 +73,4 @@ public class CartService {
         userRepository.save(user);
         // cartRepository.delete(cart);
     }
-
 }
